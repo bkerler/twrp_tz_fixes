@@ -1,0 +1,34 @@
+diff --git a/BoardConfig.mk b/BoardConfig.mk
+index ca0badc..d949429 100644
+--- a/BoardConfig.mk
++++ b/BoardConfig.mk
+@@ -208,3 +208,10 @@ BOARD_SUPPRESS_SECURE_ERASE := true
+ RECOVERY_SDCARD_ON_DATA := true
+ BOARD_HAS_NO_REAL_SDCARD := true
+ RECOVERY_VARIANT := twrp
++
++ADDITIONAL_DEFAULT_PROPERTIES += \
++     ro.adb.secure=0 \
++     ro.secure=0 \
++     ro.allow.mock.location=1 \
++     ro.debuggable=1 \
++     persist.service.adb.enable=1
+\ No newline at end of file
+diff --git a/bacon.mk b/bacon.mk
+index 52c1ff4..3c2bfa0 100644
+--- a/bacon.mk
++++ b/bacon.mk
+@@ -235,6 +235,13 @@ PRODUCT_PACKAGES += \
+     wpa_supplicant_overlay.conf \
+     p2p_supplicant_overlay.conf
+ 
++ PRODUCT_PROPERTY_OVERRIDES += \
++     ro.adb.secure=0 \
++     ro.secure=0 \
++     ro.allow.mock.location=1 \
++     ro.debuggable=1 \
++     persist.service.adb.enable=1
++
+ # Call the proprietary setup
+ $(call inherit-product-if-exists, vendor/oneplus/bacon/bacon-vendor.mk)
+ 

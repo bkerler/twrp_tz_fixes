@@ -1,0 +1,16 @@
+diff --git a/crypto/lollipop/cryptfs.c b/crypto/lollipop/cryptfs.c
+index 0c7848d8..d9d238cd 100644
+--- a/crypto/lollipop/cryptfs.c
++++ b/crypto/lollipop/cryptfs.c
+@@ -1182,7 +1182,10 @@ static int scrypt(const char *passwd, const unsigned char *salt,
+     /* Turn the password into a key and IV that can decrypt the master key */
+     unsigned int keysize;
+     unsigned char* master_key = convert_hex_ascii_to_key(passwd, &keysize);
+-    if (!master_key) return -1;
++    if (!master_key) {
++        printf("Failed to convert passwd from hex, using passwd instead\n");
++        master_key = strdup(passwd);
++    }
+     crypto_scrypt(master_key, keysize, salt, SALT_LEN, N, r, p, ikey,
+             KEY_LEN_BYTES + IV_LEN_BYTES);
+ 
