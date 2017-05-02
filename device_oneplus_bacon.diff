@@ -1,5 +1,5 @@
 diff --git a/BoardConfig.mk b/BoardConfig.mk
-index ca0badc..520ddf4 100644
+index ca0badc..c5d8528 100644
 --- a/BoardConfig.mk
 +++ b/BoardConfig.mk
 @@ -56,11 +56,6 @@ TARGET_KERNEL_CONFIG := cyanogenmod_bacon_defconfig
@@ -14,7 +14,17 @@ index ca0badc..520ddf4 100644
  # ANT+
  BOARD_ANT_WIRELESS_DEVICE := "vfs-prerelease"
  
-@@ -208,3 +203,10 @@ BOARD_SUPPRESS_SECURE_ERASE := true
+@@ -136,7 +131,8 @@ VSYNC_EVENT_PHASE_OFFSET_NS := 2500000
+ SF_VSYNC_EVENT_PHASE_OFFSET_NS := 0000000
+ 
+ # Init
+-TARGET_INIT_VENDOR_LIB := libinit_msm
++TARGET_INIT_VENDOR_LIB := libinit_bacon
++TARGET_RECOVERY_DEVICE_MODULES := libinit_bacon
+ TARGET_LIBINIT_DEFINES_FILE := device/oneplus/bacon/init/init_bacon.cpp
+ 
+ # Keymaster
+@@ -208,3 +204,10 @@ BOARD_SUPPRESS_SECURE_ERASE := true
  RECOVERY_SDCARD_ON_DATA := true
  BOARD_HAS_NO_REAL_SDCARD := true
  RECOVERY_VARIANT := twrp
