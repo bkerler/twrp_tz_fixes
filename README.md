@@ -2,9 +2,9 @@ mkdir android
 cd ~/android
 mkdir system
 cd system
-repo init -u git://github.com/bkerler/platform_manifest_twrp_lineageos.git -b cm-13.0
+repo init -u git://github.com/bkerler/platform_manifest_twrp_lineageos.git -b cm-12.1
 repo sync -j8
-git clone https://github.com/bkerler/twrp_tz_fixes ../patches
+git clone https://github.com/bkerler/twrp_tz_fixes -b cm-12.1 ../patches
 patch -p1 -d bootable/recovery-twrp < ~/android/patches/bootable_recovery-twrp.diff
 cd device/qcom/common
 git checkout 1286ac9d62dc91dcf5e1e67681ed755c9cc0c725

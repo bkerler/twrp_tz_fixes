@@ -1,30 +1,8 @@
 diff --git a/BoardConfig.mk b/BoardConfig.mk
-index ca0badc..c5d8528 100644
+index ca0badc..d949429 100644
 --- a/BoardConfig.mk
 +++ b/BoardConfig.mk
-@@ -56,11 +56,6 @@ TARGET_KERNEL_CONFIG := cyanogenmod_bacon_defconfig
- TARGET_KERNEL_SOURCE := kernel/oneplus/msm8974
- TARGET_KERNEL_CROSS_COMPILE_PREFIX := arm-linux-androideabi-
- 
--# Enable DIAG on debug builds
--ifneq ($(TARGET_BUILD_VARIANT),user)
--TARGET_KERNEL_ADDITIONAL_CONFIG:= cyanogenmod_debug_config
--endif
--
- # ANT+
- BOARD_ANT_WIRELESS_DEVICE := "vfs-prerelease"
- 
-@@ -136,7 +131,8 @@ VSYNC_EVENT_PHASE_OFFSET_NS := 2500000
- SF_VSYNC_EVENT_PHASE_OFFSET_NS := 0000000
- 
- # Init
--TARGET_INIT_VENDOR_LIB := libinit_msm
-+TARGET_INIT_VENDOR_LIB := libinit_bacon
-+TARGET_RECOVERY_DEVICE_MODULES := libinit_bacon
- TARGET_LIBINIT_DEFINES_FILE := device/oneplus/bacon/init/init_bacon.cpp
- 
- # Keymaster
-@@ -208,3 +204,10 @@ BOARD_SUPPRESS_SECURE_ERASE := true
+@@ -208,3 +208,10 @@ BOARD_SUPPRESS_SECURE_ERASE := true
  RECOVERY_SDCARD_ON_DATA := true
  BOARD_HAS_NO_REAL_SDCARD := true
  RECOVERY_VARIANT := twrp
@@ -37,7 +15,7 @@ index ca0badc..c5d8528 100644
 +     persist.service.adb.enable=1
 \ No newline at end of file
 diff --git a/bacon.mk b/bacon.mk
-index 52c1ff4..3c2bfa0 100644
+index 52c1ff4..38abec3 100644
 --- a/bacon.mk
 +++ b/bacon.mk
 @@ -235,6 +235,13 @@ PRODUCT_PACKAGES += \
@@ -45,11 +23,11 @@ index 52c1ff4..3c2bfa0 100644
      p2p_supplicant_overlay.conf
  
 + PRODUCT_PROPERTY_OVERRIDES += \
-+     ro.adb.secure=0 \
-+     ro.secure=0 \
-+     ro.allow.mock.location=1 \
-+     ro.debuggable=1 \
-+     persist.service.adb.enable=1
++    ro.adb.secure=0 \
++    ro.secure=0 \
++    ro.allow.mock.location=1 \
++    ro.debuggable=1 \
++    persist.service.adb.enable=1
 +
  # Call the proprietary setup
  $(call inherit-product-if-exists, vendor/oneplus/bacon/bacon-vendor.mk)
