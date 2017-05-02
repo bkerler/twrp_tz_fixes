@@ -1,7 +1,16 @@
 diff --git a/BoardConfig.mk b/BoardConfig.mk
-index ca0badc..d949429 100644
+index ca0badc..2d1bb7d 100644
 --- a/BoardConfig.mk
 +++ b/BoardConfig.mk
+@@ -136,7 +136,7 @@ VSYNC_EVENT_PHASE_OFFSET_NS := 2500000
+ SF_VSYNC_EVENT_PHASE_OFFSET_NS := 0000000
+ 
+ # Init
+-TARGET_INIT_VENDOR_LIB := libinit_msm
++TARGET_INIT_VENDOR_LIB := libinit_bacon
+ TARGET_LIBINIT_DEFINES_FILE := device/oneplus/bacon/init/init_bacon.cpp
+ 
+ # Keymaster
 @@ -208,3 +208,10 @@ BOARD_SUPPRESS_SECURE_ERASE := true
  RECOVERY_SDCARD_ON_DATA := true
  BOARD_HAS_NO_REAL_SDCARD := true
@@ -46,3 +55,18 @@ index 4e36d74..20597d0 100644
  on early-boot
      # set RLIMIT_MEMLOCK to 64MB
      setrlimit 8 67108864 67108864
+diff --git a/sepolicy/device.te b/sepolicy/device.te
+index e5ed080..9f03fef 100644
+--- a/sepolicy/device.te
++++ b/sepolicy/device.te
+@@ -1 +1,2 @@
+ type nvbackup_block_device, dev_type;
++type persist_block_device, dev_type;
+diff --git a/sepolicy/init_shell.te b/sepolicy/init_shell.te
+deleted file mode 100644
+index 7173734..0000000
+--- a/sepolicy/init_shell.te
++++ /dev/null
+@@ -1,2 +0,0 @@
+-allow qti_init_shell bluetooth_data_file:file create_file_perms;
+-qmux_socket(qti_init_shell);
