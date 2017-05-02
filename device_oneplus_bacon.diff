@@ -54,3 +54,17 @@ index 52c1ff4..3c2bfa0 100644
  # Call the proprietary setup
  $(call inherit-product-if-exists, vendor/oneplus/bacon/bacon-vendor.mk)
  
+diff --git a/rootdir/etc/init.bacon.rc b/rootdir/etc/init.bacon.rc
+index 4e36d74..20597d0 100644
+--- a/rootdir/etc/init.bacon.rc
++++ b/rootdir/etc/init.bacon.rc
+@@ -27,7 +27,8 @@ on init
+     mkdir /firmware 0771 system system
+     symlink /sdcard /mnt/sdcard
+     symlink /sdcard /storage/sdcard0
+-
++    symlink /vendor /system/vendor
++    
+ on early-boot
+     # set RLIMIT_MEMLOCK to 64MB
+     setrlimit 8 67108864 67108864
