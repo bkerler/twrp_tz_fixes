@@ -20,7 +20,7 @@ breakfast bacon
 #breakfast onyx
 #breakfast hammerhead
 
-make libcryptfs_hw
+#make libcryptfs_hw
 make libssl
 make libhardware
-make recoveryimage
+make recoveryimage CONFIG_NO_ERROR_ON_MISMATCH=y
