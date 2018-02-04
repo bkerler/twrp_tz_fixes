@@ -1,3 +1,4 @@
+```
 mkdir android
 cd ~/android
 mkdir system
@@ -24,3 +25,4 @@ make libcryptfs_hw
 make libssl
 make libhardware
 make recoveryimage
+```
