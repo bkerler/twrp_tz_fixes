@@ -29,7 +29,7 @@ index b2356ffce71..386168af61e 100644
  CONFIG_SERIAL_MSM_SMD=y
  CONFIG_DIAG_CHAR=y
 diff --git a/drivers/misc/qseecom.c b/drivers/misc/qseecom.c
-index 84a0a9bbd12..0cf428016a4 100644
+index 84a0a9bbd12..144734c539e 100644
 --- a/drivers/misc/qseecom.c
 +++ b/drivers/misc/qseecom.c
 @@ -109,6 +109,32 @@
@@ -580,7 +580,7 @@ index 84a0a9bbd12..0cf428016a4 100644
  	req.req_ptr = (void *)__qseecom_uvirt_to_kvirt(data,
  						(uintptr_t)req.req_ptr);
  	req.resp_ptr = (void *)__qseecom_uvirt_to_kvirt(data,
-@@ -7492,6 +7245,22 @@ long qseecom_ioctl(struct file *file, unsigned cmd, unsigned long arg)
+@@ -7492,6 +7245,20 @@ long qseecom_ioctl(struct file *file, unsigned cmd, unsigned long arg)
  		atomic_dec(&data->ioctl_count);
  		break;
  	}
@@ -589,7 +589,6 @@ index 84a0a9bbd12..0cf428016a4 100644
 +		ret = send_raw_scm(argp);
 +		atomic_dec(&data->ioctl_count);
 +    	flush_cache_all();
-+	    outer_flush_all();
 +		break;
 +	}
 +    case QSEECOM_IOCTL_SEND_ATOMIC_SCM: {
@@ -597,17 +596,16 @@ index 84a0a9bbd12..0cf428016a4 100644
 +		ret = send_atomic_scm(argp);
 +		atomic_dec(&data->ioctl_count);
 +    	flush_cache_all();
-+	    outer_flush_all();        
 +        break;
 +    }
  	default:
  		pr_err("Invalid IOCTL: 0x%x\n", cmd);
  		return -EINVAL;
 diff --git a/drivers/soc/qcom/scm.c b/drivers/soc/qcom/scm.c
-index ec514bef1f7..849617a92f5 100644
+index ec514bef1f7..58711c7c86c 100644
 --- a/drivers/soc/qcom/scm.c
 +++ b/drivers/soc/qcom/scm.c
-@@ -237,6 +237,23 @@ static int __scm_call(const struct scm_command *cmd)
+@@ -237,6 +237,22 @@ static int __scm_call(const struct scm_command *cmd)
  	return ret;
  }
  
@@ -622,7 +620,6 @@ index ec514bef1f7..849617a92f5 100644
 +	 * side in the buffer.
 +	 */
 +	flush_cache_all();
-+	outer_flush_all();
 +	ret = smc(cmd_addr);
 +
 +	return ret;
@@ -631,7 +628,7 @@ index ec514bef1f7..849617a92f5 100644
  #ifndef CONFIG_ARM64
  static void scm_inv_range(unsigned long start, unsigned long end)
  {
-@@ -264,6 +281,33 @@ static void scm_inv_range(unsigned long start, unsigned long end)
+@@ -264,6 +280,32 @@ static void scm_inv_range(unsigned long start, unsigned long end)
  }
  #endif
  
@@ -643,12 +640,11 @@ index ec514bef1f7..849617a92f5 100644
 +    cmd.len = len;
 +    cmd.buf_offset = buf_offset;
 +    cmd.resp_hdr_offset = resp_hdr_offset;
-+	cmd.id = (svc_id << 10) | cmd_id;
-+
-+	printk(KERN_INFO "Sending Fully formed SCM Command\n");
-+	printk(KERN_INFO "SVC_ID: %d, CMD_ID: %d\n", svc_id, cmd_id);
-+	printk(KERN_INFO "len: %08X, buf_offset: %08X, resp_hdr_offset: %08X\n", cmd.len, cmd.buf_offset, cmd.resp_hdr_offset);
-+    printk(KERN_INFO "Response buffer address: virtual-%08X, physical-%08X\n", ((unsigned)&cmd)+resp_hdr_offset, virt_to_phys((void*)(((unsigned)&cmd)+resp_hdr_offset)));
++    cmd.id = (svc_id << 10) | cmd_id;
++    printk(KERN_INFO "Sending Fully formed SCM Command\n");
++    printk(KERN_INFO "SVC_ID: %d, CMD_ID: %d\n", svc_id, cmd_id);
++    printk(KERN_INFO "len: %08X, buf_offset: %08X, resp_hdr_offset: %08X\n", cmd.len, cmd.buf_offset, cmd.resp_hdr_offset);
++    printk(KERN_INFO "Response buffer address: virtual-%08llX, physical-%08llX\n", (unsigned long long)((long)&cmd+(unsigned)resp_hdr_offset), (unsigned long long)(virt_to_phys((void*)(((long)&cmd+resp_hdr_offset)))));
 +    mutex_lock(&scm_lock);
 +    ret = __scm_call(&cmd);
 +	mutex_unlock(&scm_lock);
@@ -665,7 +661,7 @@ index ec514bef1f7..849617a92f5 100644
  /**
   * scm_call_common() - Send an SCM command
   * @svc_id: service identifier
-@@ -778,6 +822,22 @@ int scm_call(u32 svc_id, u32 cmd_id, const void *cmd_buf, size_t cmd_len,
+@@ -778,6 +820,22 @@ int scm_call(u32 svc_id, u32 cmd_id, const void *cmd_buf, size_t cmd_len,
  	int ret;
  	size_t len = SCM_BUF_LEN(cmd_len, resp_len);
  
@@ -688,7 +684,7 @@ index ec514bef1f7..849617a92f5 100644
  	if (len == 0 || PAGE_ALIGN(len) < len)
  		return -EINVAL;
  
-@@ -790,11 +850,113 @@ int scm_call(u32 svc_id, u32 cmd_id, const void *cmd_buf, size_t cmd_len,
+@@ -790,11 +848,113 @@ int scm_call(u32 svc_id, u32 cmd_id, const void *cmd_buf, size_t cmd_len,
  	if (unlikely(ret == SCM_EBUSY))
  		ret = _scm_call_retry(svc_id, cmd_id, cmd_buf, cmd_len,
  				      resp_buf, resp_len, cmd, PAGE_ALIGN(len));
@@ -802,7 +798,7 @@ index ec514bef1f7..849617a92f5 100644
  #define SCM_CLASS_REGISTER	(0x2 << 8)
  #define SCM_MASK_IRQS		BIT(5)
  #define SCM_ATOMIC(svc, cmd, n) (((((svc) << 10)|((cmd) & 0x3ff)) << 12) | \
-@@ -830,6 +992,10 @@ s32 scm_call_atomic1(u32 svc, u32 cmd, u32 arg1)
+@@ -830,6 +990,10 @@ s32 scm_call_atomic1(u32 svc, u32 cmd, u32 arg1)
  		: "=r" (r0)
  		: "r" (r0), "r" (r1), "r" (r2)
  		: "r3");
@@ -813,7 +809,7 @@ index ec514bef1f7..849617a92f5 100644
  	return r0;
  }
  EXPORT_SYMBOL(scm_call_atomic1);
-@@ -866,6 +1032,10 @@ s32 scm_call_atomic1_1(u32 svc, u32 cmd, u32 arg1, u32 *ret1)
+@@ -866,6 +1030,10 @@ s32 scm_call_atomic1_1(u32 svc, u32 cmd, u32 arg1, u32 *ret1)
  		: "r3");
  	if (ret1)
  		*ret1 = r1;
@@ -824,7 +820,7 @@ index ec514bef1f7..849617a92f5 100644
  	return r0;
  }
  EXPORT_SYMBOL(scm_call_atomic1_1);
-@@ -900,6 +1070,11 @@ s32 scm_call_atomic2(u32 svc, u32 cmd, u32 arg1, u32 arg2)
+@@ -900,6 +1068,11 @@ s32 scm_call_atomic2(u32 svc, u32 cmd, u32 arg1, u32 arg2)
  		"smc	#0\n"
  		: "=r" (r0)
  		: "r" (r0), "r" (r1), "r" (r2), "r" (r3));
@@ -836,7 +832,7 @@ index ec514bef1f7..849617a92f5 100644
  	return r0;
  }
  EXPORT_SYMBOL(scm_call_atomic2);
-@@ -937,6 +1112,12 @@ s32 scm_call_atomic3(u32 svc, u32 cmd, u32 arg1, u32 arg2, u32 arg3)
+@@ -937,6 +1110,12 @@ s32 scm_call_atomic3(u32 svc, u32 cmd, u32 arg1, u32 arg2, u32 arg3)
  		"smc	#0\n"
  		: "=r" (r0)
  		: "r" (r0), "r" (r1), "r" (r2), "r" (r3), "r" (r4));
@@ -849,7 +845,7 @@ index ec514bef1f7..849617a92f5 100644
  	return r0;
  }
  EXPORT_SYMBOL(scm_call_atomic3);
-@@ -972,6 +1153,13 @@ s32 scm_call_atomic4_3(u32 svc, u32 cmd, u32 arg1, u32 arg2,
+@@ -972,6 +1151,13 @@ s32 scm_call_atomic4_3(u32 svc, u32 cmd, u32 arg1, u32 arg2,
  		*ret1 = r1;
  	if (ret2)
  		*ret2 = r2;
