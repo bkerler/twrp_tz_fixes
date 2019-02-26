@@ -1,3 +1,4 @@
+For TWRP:
 ```
 mkdir android
 cd ~/android
@@ -25,4 +26,26 @@ make libcryptfs_hw
 make libssl
 make libhardware
 make recoveryimage
+```
+
+For stock kernel (preinstall):
+```
+sudo apt install build-essentials
+mkdir android
+cd ~/android
+git clone https://github.com/bq/aquaris-X-Pro.git
+cd kernel
+git checkout tags/2.5.1_20190114-1551
+patch -p1 < ../kernel_bq_msm8953.diff
+cd ..
+git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
+```
+
+make_kernel.sh :
+```
+rm -rf KERNEL_OUT
+mkdir KERNEL_OUT
+make -C kernel O=../KERNEL_OUT ARCH=arm64 CROSS_COMPILE=$HOME/android/aarch64-linux-android-4.9 bardock-pro_defconfig
+make -j4 O=../KERNEL_OUT/ -C kernel ARCH=arm64 CROSS_COMPILE=$HOME/android/aarch64-linux-android-4.9/bin/aarch64-linux-android-
+cp KERNEL_OUT/arch/arm64/boot/Image.gz-dtb kernel
 ```

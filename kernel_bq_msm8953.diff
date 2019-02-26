@@ -1,343 +1,245 @@
-diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/arch/arm64/configs/bardock-pro_defconfig kernel/arch/arm64/configs/bardock-pro_defconfig
---- aquaris-X-Pro-1.3.5_20170620-0532/arch/arm64/configs/bardock-pro_defconfig	2017-07-19 16:32:34.000000000 +0200
-+++ kernel/arch/arm64/configs/bardock-pro_defconfig	2018-06-29 10:56:40.473595958 +0200
-@@ -309,8 +309,8 @@
- CONFIG_HALL=y
+diff --git a/arch/arm64/configs/bardock-pro_defconfig b/arch/arm64/configs/bardock-pro_defconfig
+index 5208f905553..02f71d0cef6 100644
+--- a/arch/arm64/configs/bardock-pro_defconfig
++++ b/arch/arm64/configs/bardock-pro_defconfig
+@@ -36,9 +36,9 @@ CONFIG_MODULES=y
+ CONFIG_MODULE_UNLOAD=y
+ CONFIG_MODULE_FORCE_UNLOAD=y
+ CONFIG_MODVERSIONS=y
+-CONFIG_MODULE_SIG=y
+-CONFIG_MODULE_SIG_FORCE=y
+-CONFIG_MODULE_SIG_SHA512=y
++CONFIG_MODULE_SIG=n
++CONFIG_MODULE_SIG_FORCE=n
++CONFIG_MODULE_SIG_SHA512=n
+ CONFIG_PARTITION_ADVANCED=y
+ CONFIG_ARCH_MSM=y
+ CONFIG_ARCH_MSM8916=y
+@@ -286,7 +286,7 @@ CONFIG_WCNSS_REGISTER_DUMP_ON_BITE=y
+ CONFIG_WCNSS_MEM_PRE_ALLOC=y
+ CONFIG_CNSS_CRYPTO=y
+ CONFIG_ATH_CARDS=y
+-CONFIG_WIL6210=m
++CONFIG_WIL6210=y
+ CONFIG_CLD_LL_CORE=y
+ CONFIG_INPUT_EVDEV=y
+ CONFIG_INPUT_EVBUG=m
+@@ -317,9 +317,9 @@ CONFIG_FINGERPRINT_GOODIX_GF3208=y
+ CONFIG_FINGERPRINT_CS_FINGER=y
  # CONFIG_VT is not set
  # CONFIG_LEGACY_PTYS is not set
 -# CONFIG_DEVMEM is not set
 -# CONFIG_DEVKMEM is not set
+-# CONFIG_SERIAL_MSM_HS is not set
 +CONFIG_DEVMEM=y
 +CONFIG_DEVKMEM=y
- CONFIG_SERIAL_MSM_HS=n
++CONFIG_SERIAL_MSM_HS=y
  CONFIG_SERIAL_MSM_SMD=y
  CONFIG_DIAG_CHAR=y
-@@ -555,6 +555,7 @@
- CONFIG_MSM_QMI_INTERFACE=y
- CONFIG_MSM_IPC_ROUTER_SMD_XPRT=y
- CONFIG_MSM_EVENT_TIMER=y
-+CONFIG_STRICT_MEMORY_RWX=n
- CONFIG_MSM_TZ_SMMU=y
- CONFIG_MSM_SUBSYSTEM_RESTART=y
- CONFIG_MSM_SYSMON_COMM=y
-@@ -564,8 +565,8 @@
- CONFIG_ICNSS=y
+ CONFIG_HW_RANDOM=y
+@@ -581,7 +581,7 @@ CONFIG_ICNSS=y
  CONFIG_MSM_BAM_DMUX=y
  CONFIG_MSM_PERFORMANCE=y
--CONFIG_MSM_KERNEL_PROTECT=y
+ CONFIG_MSM_KERNEL_PROTECT=y
 -CONFIG_MSM_KERNEL_PROTECT_MPU=y
-+CONFIG_MSM_KERNEL_PROTECT=n
 +CONFIG_MSM_KERNEL_PROTECT_MPU=n
+ CONFIG_QCOM_EARLY_RANDOM=y
  CONFIG_MEM_SHARE_QMI_SERVICE=y
- CONFIG_MSM_CLK_CONTROLLER_V2=y
- CONFIG_MSM_MDSS_PLL=y
-diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/drivers/misc/qseecom.c kernel/drivers/misc/qseecom.c
---- aquaris-X-Pro-1.3.5_20170620-0532/drivers/misc/qseecom.c	2017-07-19 16:32:34.000000000 +0200
-+++ kernel/drivers/misc/qseecom.c	2018-07-03 12:42:39.351428989 +0200
-@@ -2699,85 +2699,6 @@
+ CONFIG_SPDM_SCM=y
+@@ -645,3 +645,4 @@ CONFIG_CRYPTO_AES_ARM64_CE_CCM=y
+ CONFIG_CRYPTO_AES_ARM64_CE_BLK=y
+ CONFIG_CRYPTO_AES_ARM64_NEON_BLK=y
+ CONFIG_QMI_ENCDEC=y
++CONFIG_WLAN=y
+\ No newline at end of file
+diff --git a/drivers/misc/qseecom.c b/drivers/misc/qseecom.c
+index 1fca674d3ed..c4a5eb8492c 100644
+--- a/drivers/misc/qseecom.c
++++ b/drivers/misc/qseecom.c
+@@ -2718,7 +2718,7 @@ int __qseecom_process_fsm_key_svc_cmd(struct qseecom_dev_handle *data_ptr,
  static int __validate_send_service_cmd_inputs(struct qseecom_dev_handle *data,
  				struct qseecom_send_svc_cmd_req *req)
  {
 -	if (!req || !req->resp_buf || !req->cmd_req_buf) {
--		pr_err("req or cmd buffer or response buffer is null\n");
--		return -EINVAL;
++ /*	if (!req || !req->resp_buf || !req->cmd_req_buf) {
+ 		pr_err("req or cmd buffer or response buffer is null\n");
+ 		return -EINVAL;
+ 	}
+@@ -2796,7 +2796,7 @@ static int __validate_send_service_cmd_inputs(struct qseecom_dev_handle *data,
+ 					data->client.sb_length))) {
+ 		pr_err("cmd buf or resp buf is out of shared buffer region\n");
+ 		return -EINVAL;
 -	}
--
--	if (!data || !data->client.ihandle) {
--		pr_err("Client or client handle is not initialized\n");
--		return -EINVAL;
--	}
--
--	if (data->client.sb_virt == NULL) {
--		pr_err("sb_virt null\n");
--		return -EINVAL;
--	}
--
--	if (data->client.user_virt_sb_base == 0) {
--		pr_err("user_virt_sb_base is null\n");
--		return -EINVAL;
--	}
--
--	if (data->client.sb_length == 0) {
--		pr_err("sb_length is 0\n");
--		return -EINVAL;
--	}
--
--	if (((uintptr_t)req->cmd_req_buf <
--				data->client.user_virt_sb_base) ||
--		((uintptr_t)req->cmd_req_buf >=
--		(data->client.user_virt_sb_base + data->client.sb_length))) {
--		pr_err("cmd buffer address not within shared bufffer\n");
--		return -EINVAL;
--	}
--	if (((uintptr_t)req->resp_buf <
--				data->client.user_virt_sb_base)  ||
--		((uintptr_t)req->resp_buf >=
--		(data->client.user_virt_sb_base + data->client.sb_length))) {
--		pr_err("response buffer address not within shared bufffer\n");
--		return -EINVAL;
--	}
--	if ((req->cmd_req_len == 0) || (req->resp_len == 0) ||
--		(req->cmd_req_len > data->client.sb_length) ||
--		(req->resp_len > data->client.sb_length)) {
--		pr_err("cmd buf length or response buf length not valid\n");
--		return -EINVAL;
--	}
--	if (req->cmd_req_len > UINT_MAX - req->resp_len) {
--		pr_err("Integer overflow detected in req_len & rsp_len\n");
--		return -EINVAL;
--	}
--
--	if ((req->cmd_req_len + req->resp_len) > data->client.sb_length) {
--		pr_debug("Not enough memory to fit cmd_buf.\n");
--		pr_debug("resp_buf. Required: %u, Available: %zu\n",
--				(req->cmd_req_len + req->resp_len),
--					data->client.sb_length);
--		return -ENOMEM;
--	}
--	if ((uintptr_t)req->cmd_req_buf > (ULONG_MAX - req->cmd_req_len)) {
--		pr_err("Integer overflow in req_len & cmd_req_buf\n");
--		return -EINVAL;
--	}
--	if ((uintptr_t)req->resp_buf > (ULONG_MAX - req->resp_len)) {
--		pr_err("Integer overflow in resp_len & resp_buf\n");
--		return -EINVAL;
--	}
--	if (data->client.user_virt_sb_base >
--					(ULONG_MAX - data->client.sb_length)) {
--		pr_err("Integer overflow in user_virt_sb_base & sb_length\n");
--		return -EINVAL;
--	}
--	if ((((uintptr_t)req->cmd_req_buf + req->cmd_req_len) >
--		((uintptr_t)data->client.user_virt_sb_base +
--					data->client.sb_length)) ||
--		(((uintptr_t)req->resp_buf + req->resp_len) >
--		((uintptr_t)data->client.user_virt_sb_base +
--					data->client.sb_length))) {
--		pr_err("cmd buf or resp buf is out of shared buffer region\n");
--		return -EINVAL;
--	}
++	}*/
  	return 0;
  }
  
-@@ -2919,69 +2840,6 @@
+@@ -2942,7 +2942,7 @@ static int __validate_send_cmd_inputs(struct qseecom_dev_handle *data,
  				struct qseecom_send_cmd_req *req)
  
  {
 -	if (!data || !data->client.ihandle) {
--		pr_err("Client or client handle is not initialized\n");
--		return -EINVAL;
++	/*if (!data || !data->client.ihandle) {
+ 		pr_err("Client or client handle is not initialized\n");
+ 		return -EINVAL;
+ 	}
+@@ -3004,7 +3004,7 @@ static int __validate_send_cmd_inputs(struct qseecom_dev_handle *data,
+ 						data->client.sb_length))) {
+ 		pr_err("cmd buf or resp buf is out of shared buffer region\n");
+ 		return -EINVAL;
 -	}
--	if (((req->resp_buf == NULL) && (req->resp_len != 0)) ||
--						(req->cmd_req_buf == NULL)) {
--		pr_err("cmd buffer or response buffer is null\n");
--		return -EINVAL;
--	}
--	if (((uintptr_t)req->cmd_req_buf <
--				data->client.user_virt_sb_base) ||
--		((uintptr_t)req->cmd_req_buf >=
--		(data->client.user_virt_sb_base + data->client.sb_length))) {
--		pr_err("cmd buffer address not within shared bufffer\n");
--		return -EINVAL;
--	}
--	if (((uintptr_t)req->resp_buf <
--				data->client.user_virt_sb_base)  ||
--		((uintptr_t)req->resp_buf >=
--		(data->client.user_virt_sb_base + data->client.sb_length))) {
--		pr_err("response buffer address not within shared bufffer\n");
--		return -EINVAL;
--	}
--	if ((req->cmd_req_len == 0) ||
--		(req->cmd_req_len > data->client.sb_length) ||
--		(req->resp_len > data->client.sb_length)) {
--		pr_err("cmd buf length or response buf length not valid\n");
--		return -EINVAL;
--	}
--	if (req->cmd_req_len > UINT_MAX - req->resp_len) {
--		pr_err("Integer overflow detected in req_len & rsp_len\n");
--		return -EINVAL;
--	}
--
--	if ((req->cmd_req_len + req->resp_len) > data->client.sb_length) {
--		pr_debug("Not enough memory to fit cmd_buf.\n");
--		pr_debug("resp_buf. Required: %u, Available: %zu\n",
--				(req->cmd_req_len + req->resp_len),
--					data->client.sb_length);
--		return -ENOMEM;
--	}
--	if ((uintptr_t)req->cmd_req_buf > (ULONG_MAX - req->cmd_req_len)) {
--		pr_err("Integer overflow in req_len & cmd_req_buf\n");
--		return -EINVAL;
--	}
--	if ((uintptr_t)req->resp_buf > (ULONG_MAX - req->resp_len)) {
--		pr_err("Integer overflow in resp_len & resp_buf\n");
--		return -EINVAL;
--	}
--	if (data->client.user_virt_sb_base >
--					(ULONG_MAX - data->client.sb_length)) {
--		pr_err("Integer overflow in user_virt_sb_base & sb_length\n");
--		return -EINVAL;
--	}
--	if ((((uintptr_t)req->cmd_req_buf + req->cmd_req_len) >
--		((uintptr_t)data->client.user_virt_sb_base +
--						data->client.sb_length)) ||
--		(((uintptr_t)req->resp_buf + req->resp_len) >
--		((uintptr_t)data->client.user_virt_sb_base +
--						data->client.sb_length))) {
--		pr_err("cmd buf or resp buf is out of shared buffer region\n");
--		return -EINVAL;
--	}
++	}*/
  	return 0;
  }
  
-@@ -3027,7 +2885,7 @@
- static int __qseecom_send_cmd(struct qseecom_dev_handle *data,
+@@ -3051,6 +3051,8 @@ static int __qseecom_send_cmd(struct qseecom_dev_handle *data,
  				struct qseecom_send_cmd_req *req)
  {
--	int ret = 0;
-+ 	int ret = 0;
+ 	int ret = 0;
++    size_t i;
++    char* buffer=NULL;
  	u32 reqd_len_sb_in = 0;
  	struct qseecom_client_send_data_ireq send_data_req = {0};
  	struct qseecom_client_send_data_64bit_ireq send_data_req_64bit = {0};
-@@ -3038,7 +2896,22 @@
- 	void *cmd_buf = NULL;
- 	size_t cmd_len;
- 	struct sglist_info *table = data->sglistinfo_ptr;
--
-+/*
-+    size_t i;
-+    char* buffer=NULL;
-+	if (req->cmd_req_buf!=NULL)
-+	{
-+        buffer = kmalloc(2*req->cmd_req_len+1, GFP_ATOMIC);
-+        buffer[0] = '\0';
-+        for (i=0; i<req->cmd_req_len; i++) {
-+                char sub_buf[3];
-+                sprintf(sub_buf, "%02X", ((unsigned char*)req->cmd_req_buf)[i]);
-+                strcat(buffer, sub_buf);
-+        }
-+        printk(KERN_INFO "qseecom_send_cmd: CONTENT OF SEND CMD: %s\n", buffer);
-+        kfree(buffer);
-+	}
-+*/
- 	reqd_len_sb_in = req->cmd_req_len + req->resp_len;
- 	/* find app_id & img_name from list */
- 	spin_lock_irqsave(&qseecom.registered_app_list_lock, flags);
-@@ -3073,6 +2946,8 @@
+@@ -3096,6 +3098,23 @@ static int __qseecom_send_cmd(struct qseecom_dev_handle *data,
  				(void *)table + SGLISTINFO_TABLE_SIZE);
  		cmd_buf = (void *)&send_data_req;
  		cmd_len = sizeof(struct qseecom_client_send_data_ireq);
-+        printk(KERN_INFO "Request pointer physical address: %p\n", (void*)&send_data_req.req_ptr);
-+        printk(KERN_INFO "Response pointer physical address: %p\n", (void*)&send_data_req.rsp_ptr);
++		printk(KERN_INFO "Request pointer physical address: %p\n", (void*)&send_data_req.req_ptr);
++		printk(KERN_INFO "Response pointer physical address: %p\n", (void*)&send_data_req.rsp_ptr);
++
++/* Comment out below */
++	if (cmd_buf!=NULL)
++	{
++        buffer = kmalloc(2*cmd_len+1, GFP_ATOMIC);
++        buffer[0] = '\0';
++        for (i=0; i<cmd_len; i++) {
++                char sub_buf[3];
++                sprintf(sub_buf, "%02X", ((unsigned char*)cmd_buf)[i]);
++                strcat(buffer, sub_buf);
++        }
++        printk(KERN_INFO "qseecom_send_cmd(32): CONTENT OF SEND CMD: %s\n", buffer);
++        kfree(buffer);
++	}
++/* Comment out above */
  	} else {
  		send_data_req_64bit.app_id = data->client.app_id;
  		send_data_req_64bit.req_ptr = __qseecom_uvirt_to_kphys(data,
-@@ -3102,6 +2977,8 @@
+@@ -3125,6 +3144,22 @@ static int __qseecom_send_cmd(struct qseecom_dev_handle *data,
  				(void *)table + SGLISTINFO_TABLE_SIZE);
  		cmd_buf = (void *)&send_data_req_64bit;
  		cmd_len = sizeof(struct qseecom_client_send_data_64bit_ireq);
 +        printk(KERN_INFO "Request64 pointer physical address: %p\n", (void*)&send_data_req_64bit.req_ptr);
 +        printk(KERN_INFO "Response64 pointer physical address: %p\n", (void*)&send_data_req_64bit.rsp_ptr);
++/* Comment out below */
++	if (cmd_buf!=NULL)
++	{
++        buffer = kmalloc(2*cmd_len+1, GFP_ATOMIC);
++        buffer[0] = '\0';
++        for (i=0; i<cmd_len; i++) {
++                char sub_buf[3];
++                sprintf(sub_buf, "%02X", ((unsigned char*)cmd_buf)[i]);
++                strcat(buffer, sub_buf);
++        }
++        printk(KERN_INFO "qseecom_send_cmd(64): CONTENT OF SEND CMD: %s\n", buffer);
++        kfree(buffer);
++	}
++/* Comment out above */
  	}
  
  	if (qseecom.whitelist_support == false || data->use_legacy_cmd == true)
-@@ -3180,26 +3057,6 @@
+@@ -3203,7 +3238,7 @@ static int qseecom_send_cmd(struct qseecom_dev_handle *data, void __user *argp)
  int __boundary_checks_offset(struct qseecom_send_modfd_cmd_req *req,
  			struct qseecom_send_modfd_listener_resp *lstnr_resp,
  			struct qseecom_dev_handle *data, int i) {
 -
--	if ((data->type != QSEECOM_LISTENER_SERVICE) &&
--						(req->ifd_data[i].fd > 0)) {
--			if ((req->cmd_req_len < sizeof(uint32_t)) ||
--				(req->ifd_data[i].cmd_buf_offset >
--				req->cmd_req_len - sizeof(uint32_t))) {
--				pr_err("Invalid offset (req len) 0x%x\n",
--					req->ifd_data[i].cmd_buf_offset);
--				return -EINVAL;
--			}
--	} else if ((data->type == QSEECOM_LISTENER_SERVICE) &&
--					(lstnr_resp->ifd_data[i].fd > 0)) {
--			if ((lstnr_resp->resp_len < sizeof(uint32_t)) ||
--				(lstnr_resp->ifd_data[i].cmd_buf_offset >
--				lstnr_resp->resp_len - sizeof(uint32_t))) {
--				pr_err("Invalid offset (lstnr resp len) 0x%x\n",
--					lstnr_resp->ifd_data[i].cmd_buf_offset);
--				return -EINVAL;
--			}
--		}
++/*
+ 	if ((data->type != QSEECOM_LISTENER_SERVICE) &&
+ 						(req->ifd_data[i].fd > 0)) {
+ 			if ((req->cmd_req_len < sizeof(uint32_t)) ||
+@@ -3223,6 +3258,7 @@ int __boundary_checks_offset(struct qseecom_send_modfd_cmd_req *req,
+ 				return -EINVAL;
+ 			}
+ 		}
++*/
  	return 0;
  }
  
-@@ -3669,7 +3526,6 @@
+@@ -3692,7 +3728,7 @@ static int __qseecom_send_modfd_cmd(struct qseecom_dev_handle *data,
  					bool is_64bit_addr)
  {
  	int ret = 0;
 -	int i;
++	//int i;
  	struct qseecom_send_modfd_cmd_req req;
  	struct qseecom_send_cmd_req send_cmd_req;
  
-@@ -3687,14 +3543,6 @@
- 	if (__validate_send_cmd_inputs(data, &send_cmd_req))
+@@ -3711,13 +3747,13 @@ static int __qseecom_send_modfd_cmd(struct qseecom_dev_handle *data,
  		return -EINVAL;
  
--	/* validate offsets */
+ 	/* validate offsets */
 -	for (i = 0; i < MAX_ION_FD; i++) {
--		if (req.ifd_data[i].cmd_buf_offset >= req.cmd_req_len) {
--			pr_err("Invalid offset %d = 0x%x\n",
--				i, req.ifd_data[i].cmd_buf_offset);
--			return -EINVAL;
--		}
++	/*for (i = 0; i < MAX_ION_FD; i++) {
+ 		if (req.ifd_data[i].cmd_buf_offset >= req.cmd_req_len) {
+ 			pr_err("Invalid offset %d = 0x%x\n",
+ 				i, req.ifd_data[i].cmd_buf_offset);
+ 			return -EINVAL;
+ 		}
 -	}
++	}*/
  	req.cmd_req_buf = (void *)__qseecom_uvirt_to_kvirt(data,
  						(uintptr_t)req.cmd_req_buf);
  	req.resp_buf = (void *)__qseecom_uvirt_to_kvirt(data,
-@@ -4681,8 +4529,6 @@
+@@ -4711,7 +4747,7 @@ static int __validate_send_modfd_resp_inputs(struct qseecom_dev_handle *data,
  			struct qseecom_send_modfd_listener_resp *resp,
  			struct qseecom_registered_listener_list *this_lstnr)
  {
 -	int i;
--
++	//int i;
+ 
  	if (!data || !resp || !this_lstnr) {
  		pr_err("listener handle or resp msg is null\n");
- 		return -EINVAL;
-@@ -4721,14 +4567,6 @@
- 		return -EINVAL;
+@@ -4752,13 +4788,13 @@ static int __validate_send_modfd_resp_inputs(struct qseecom_dev_handle *data,
  	}
  
--	/* validate offsets */
+ 	/* validate offsets */
 -	for (i = 0; i < MAX_ION_FD; i++) {
--		if (resp->ifd_data[i].cmd_buf_offset >= resp->resp_len) {
--			pr_err("Invalid offset %d = 0x%x\n",
--				i, resp->ifd_data[i].cmd_buf_offset);
--			return -EINVAL;
--		}
++	/*for (i = 0; i < MAX_ION_FD; i++) {
+ 		if (resp->ifd_data[i].cmd_buf_offset >= resp->resp_len) {
+ 			pr_err("Invalid offset %d = 0x%x\n",
+ 				i, resp->ifd_data[i].cmd_buf_offset);
+ 			return -EINVAL;
+ 		}
 -	}
++	}*/
  
  	return 0;
  }
-@@ -6612,7 +6450,6 @@
+@@ -6655,7 +6691,7 @@ static int qseecom_qteec_invoke_modfd_cmd(struct qseecom_dev_handle *data,
  	bool found_app = false;
  	unsigned long flags;
  	int ret = 0;
 -	int i = 0;
++	//int i = 0;
  	uint32_t reqd_len_sb_in = 0;
  	void *cmd_buf = NULL;
  	size_t cmd_len;
-@@ -6650,13 +6487,6 @@
- 		return -ENOENT;
+@@ -6694,12 +6730,12 @@ static int qseecom_qteec_invoke_modfd_cmd(struct qseecom_dev_handle *data,
  	}
  
--	/* validate offsets */
+ 	/* validate offsets */
 -	for (i = 0; i < MAX_ION_FD; i++) {
--		if (req.ifd_data[i].fd) {
--			if (req.ifd_data[i].cmd_buf_offset >= req.req_len)
--				return -EINVAL;
--		}
++	/*for (i = 0; i < MAX_ION_FD; i++) {
+ 		if (req.ifd_data[i].fd) {
+ 			if (req.ifd_data[i].cmd_buf_offset >= req.req_len)
+ 				return -EINVAL;
+ 		}
 -	}
++	}*/
  	req.req_ptr = (void *)__qseecom_uvirt_to_kvirt(data,
  						(uintptr_t)req.req_ptr);
  	req.resp_ptr = (void *)__qseecom_uvirt_to_kvirt(data,
-@@ -6779,6 +6609,84 @@
+@@ -6876,6 +6912,83 @@ static void __qseecom_bus_scaling_disable(struct qseecom_dev_handle *data,
  	}
  }
  
@@ -347,7 +249,7 @@ diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/drivers/misc/qseecom.c kernel/driver
 +	struct qseecom_send_atomic_scm_req req;
 +	ret = copy_from_user(&req, argp, sizeof(req));
 +	if (ret) {
-+		pr_err("copy_from_user failed\n");
++	pr_err("copy_from_user failed\n");
 +		return ret;
 +	}
 +	pr_warning("Going to send atomic SCM request\n");
@@ -418,14 +320,13 @@ diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/drivers/misc/qseecom.c kernel/driver
 +	return ret;
 +}
 +
-+
  long qseecom_ioctl(struct file *file, unsigned cmd, unsigned long arg)
  {
  	int ret = 0;
-@@ -6977,6 +6885,24 @@
- 			pr_err("failed qseecom_receive_req: %d\n", ret);
- 		break;
+@@ -6894,6 +7007,24 @@ long qseecom_ioctl(struct file *file, unsigned cmd, unsigned long arg)
  	}
+ 
+ 	switch (cmd) {
 +     case QSEECOM_IOCTL_SEND_RAW_SCM: {
 +		atomic_inc(&data->ioctl_count);
 +		ret = send_raw_scm(argp);
@@ -444,29 +345,27 @@ diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/drivers/misc/qseecom.c kernel/driver
 +			pr_err("failed ioctl_send_atomic: %d\n", ret);       
 +        break;
 +    }
- 	case QSEECOM_IOCTL_SEND_RESP_REQ: {
- 		if ((data->listener.id == 0) ||
- 			(data->type != QSEECOM_LISTENER_SERVICE)) {
-@@ -8814,6 +8740,8 @@
- 	atomic_set(&qseecom.qseecom_state, QSEECOM_STATE_READY);
- 	return ret;
- }
-+
-+
- static struct of_device_id qseecom_match[] = {
- 	{
- 		.compatible = "qcom,qseecom",
-@@ -8847,4 +8775,4 @@
- MODULE_DESCRIPTION("Qualcomm Secure Execution Environment Communicator");
+ 	case QSEECOM_IOCTL_REGISTER_LISTENER_REQ: {
+ 		if (data->type != QSEECOM_GENERIC) {
+ 			pr_err("reg lstnr req: invalid handle (%d)\n",
+diff --git a/drivers/soc/qcom/scm-xpu.c b/drivers/soc/qcom/scm-xpu.c
+index 37a3a58882d..a21124d47ad 100644
+--- a/drivers/soc/qcom/scm-xpu.c
++++ b/drivers/soc/qcom/scm-xpu.c
+@@ -32,7 +32,7 @@ static int __init xpu_err_fatal_init(void)
+ 	struct scm_desc desc = {0};
  
- module_init(qseecom_init);
--module_exit(qseecom_exit);
-+module_exit(qseecom_exit); 
-\ No newline at end of file
-diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/drivers/soc/qcom/scm.c kernel/drivers/soc/qcom/scm.c
---- aquaris-X-Pro-1.3.5_20170620-0532/drivers/soc/qcom/scm.c	2017-07-19 16:32:34.000000000 +0200
-+++ kernel/drivers/soc/qcom/scm.c	2018-06-29 11:43:06.850769405 +0200
-@@ -291,10 +291,27 @@
+ 	desc.arginfo = SCM_ARGS(2);
+-	desc.args[0] = cmd.config = ERR_FATAL_VAL;
++	desc.args[0] = cmd.config = 0x1;
+ 	desc.args[1] = cmd.spare = 0;
+ 
+ 	if (!is_scm_armv8())
+diff --git a/drivers/soc/qcom/scm.c b/drivers/soc/qcom/scm.c
+index ec514bef1f7..80c20f55321 100644
+--- a/drivers/soc/qcom/scm.c
++++ b/drivers/soc/qcom/scm.c
+@@ -291,11 +291,27 @@ static int scm_call_common(u32 svc_id, u32 cmd_id, const void *cmd_buf,
  	struct scm_response *rsp;
  	unsigned long start, end;
  
@@ -490,22 +389,23 @@ diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/drivers/soc/qcom/scm.c kernel/driver
  	scm_buf->buf_offset = offsetof(struct scm_command, buf);
  	scm_buf->resp_hdr_offset = scm_buf->buf_offset + cmd_len;
  	scm_buf->id = (svc_id << 10) | cmd_id;
-+    //printk(KERN_INFO "Response buffer address: virtual-%08X, physical-%08X\n", scm_buf->resp_hdr_offset, virt_to_phys((void*)((unsigned)scm_buf->resp_hdr_offset)));
- 
+-
++	//printk(KERN_INFO "Response buffer address: virtual-%08X, physical-%08X\n", scm_buf->resp_hdr_offset, virt_to_phys((void*)((unsigned)scm_buf->resp_hdr_offset)));
  	if (cmd_buf)
  		memcpy(scm_get_command_buffer(scm_buf), cmd_buf, cmd_len);
-@@ -303,7 +320,10 @@
+ 
+@@ -303,7 +319,10 @@ static int scm_call_common(u32 svc_id, u32 cmd_id, const void *cmd_buf,
  	ret = __scm_call(scm_buf);
  	mutex_unlock(&scm_lock);
  	if (ret)
-+    {
-+        printk(KERN_INFO "SCM Call returned\n");
++	{
++		printk(KERN_INFO "SCM Call returned\n");
  		return ret;
-+    }
++	}
  
  	rsp = scm_command_to_response(scm_buf);
  	start = (unsigned long)rsp;
-@@ -318,6 +338,21 @@
+@@ -318,6 +337,21 @@ static int scm_call_common(u32 svc_id, u32 cmd_id, const void *cmd_buf,
  	if (resp_buf)
  		memcpy(resp_buf, scm_get_response_buffer(rsp), resp_len);
  
@@ -527,7 +427,7 @@ diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/drivers/soc/qcom/scm.c kernel/driver
  	return ret;
  }
  
-@@ -654,6 +689,12 @@
+@@ -654,6 +688,12 @@ int scm_call2(u32 fn_id, struct scm_desc *desc)
  	if (unlikely(!is_scm_armv8()))
  		return -ENODEV;
  
@@ -540,21 +440,19 @@ diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/drivers/soc/qcom/scm.c kernel/driver
  	ret = allocate_extra_arg_buffer(desc, GFP_KERNEL);
  	if (ret)
  		return ret;
-@@ -697,9 +738,11 @@
+@@ -697,7 +737,10 @@ int scm_call2(u32 fn_id, struct scm_desc *desc)
  	}  while (ret == SCM_V2_EBUSY && (retry_count++ < SCM_EBUSY_MAX_RETRY));
  
  	if (ret < 0)
 -		pr_err("scm_call failed: func id %#llx, ret: %d, syscall returns: %#llx, %#llx, %#llx\n",
 +		pr_err("scm_call2 failed: func id %#llx, ret: %d, syscall returns: %#llx, %#llx, %#llx\n",
- 			x0, ret, desc->ret[0], desc->ret[1], desc->ret[2]);
--
-+    printk(KERN_INFO "scm_call2: func id %#llx, ret: %d, syscall returns: %#llx, %#llx, %#llx\n",
 +			x0, ret, desc->ret[0], desc->ret[1], desc->ret[2]);
-+   
++
++    printk(KERN_INFO "scm_call2: func id %#llx, ret: %d, syscall returns: %#llx, %#llx, %#llx\n",
+ 			x0, ret, desc->ret[0], desc->ret[1], desc->ret[2]);
+ 
  	if (arglen > N_REGISTER_ARGS)
- 		kfree(desc->extra_arg_buf);
- 	if (ret < 0)
-@@ -725,6 +768,14 @@
+@@ -725,6 +768,14 @@ int scm_call2_atomic(u32 fn_id, struct scm_desc *desc)
  	if (unlikely(!is_scm_armv8()))
  		return -ENODEV;
  
@@ -569,17 +467,18 @@ diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/drivers/soc/qcom/scm.c kernel/driver
  	ret = allocate_extra_arg_buffer(desc, GFP_ATOMIC);
  	if (ret)
  		return ret;
-@@ -751,6 +802,9 @@
- 			desc->args[2], desc->x5, ret, desc->ret[0],
- 			desc->ret[1], desc->ret[2]);
- 
-+    printk(KERN_INFO "scm_call2_atomic: func id %#llx, ret: %d, syscall returns: %#llx, %#llx, %#llx\n",
-+			x0, ret, desc->ret[0], desc->ret[1], desc->ret[2]);
-+            
- 	if (arglen > N_REGISTER_ARGS)
- 		kfree(desc->extra_arg_buf);
+@@ -741,6 +792,10 @@ int scm_call2_atomic(u32 fn_id, struct scm_desc *desc)
+ 					  desc->args[1], desc->args[2],
+ 					  desc->x5, &desc->ret[0],
+ 					  &desc->ret[1], &desc->ret[2]);
++
++	printk(KERN_INFO "scm_call2_atomic: func id %#llx, ret: %d, syscall returns: %#llx, %#llx, %#llx\n",
++					x0, ret, desc->ret[0], desc->ret[1], desc->ret[2]);
++  
  	if (ret < 0)
-@@ -823,6 +877,10 @@
+ 		pr_err("scm_call failed: func id %#llx, ret: %d, syscall returns: %#llx, %#llx, %#llx\n",
+ 			x0, ret, desc->ret[0],
+@@ -818,6 +873,10 @@ s32 scm_call_atomic1(u32 svc, u32 cmd, u32 arg1)
  	register u32 r1 asm("r1") = (uintptr_t)&context_id;
  	register u32 r2 asm("r2") = arg1;
  
@@ -590,7 +489,7 @@ diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/drivers/soc/qcom/scm.c kernel/driver
  	asm volatile(
  		__asmeq("%0", R0_STR)
  		__asmeq("%1", R0_STR)
-@@ -835,6 +893,7 @@
+@@ -830,6 +889,7 @@ s32 scm_call_atomic1(u32 svc, u32 cmd, u32 arg1)
  		: "=r" (r0)
  		: "r" (r0), "r" (r1), "r" (r2)
  		: "r3");
@@ -598,7 +497,7 @@ diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/drivers/soc/qcom/scm.c kernel/driver
  	return r0;
  }
  EXPORT_SYMBOL(scm_call_atomic1);
-@@ -856,6 +915,10 @@
+@@ -851,6 +911,10 @@ s32 scm_call_atomic1_1(u32 svc, u32 cmd, u32 arg1, u32 *ret1)
  	register u32 r1 asm("r1") = (uintptr_t)&context_id;
  	register u32 r2 asm("r2") = arg1;
  
@@ -609,16 +508,18 @@ diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/drivers/soc/qcom/scm.c kernel/driver
  	asm volatile(
  		__asmeq("%0", R0_STR)
  		__asmeq("%1", R1_STR)
-@@ -871,6 +934,8 @@
+@@ -866,6 +930,10 @@ s32 scm_call_atomic1_1(u32 svc, u32 cmd, u32 arg1, u32 *ret1)
  		: "r3");
  	if (ret1)
  		*ret1 = r1;
-+        printk(KERN_INFO "Ret1: 0x%08X\n", r1);
++
++    printk(KERN_INFO "Ret1: 0x%08X\n", r1);
 +    printk(KERN_INFO "Ret: 0x%08X\n", r0);
++
  	return r0;
  }
  EXPORT_SYMBOL(scm_call_atomic1_1);
-@@ -893,6 +958,9 @@
+@@ -888,6 +956,9 @@ s32 scm_call_atomic2(u32 svc, u32 cmd, u32 arg1, u32 arg2)
  	register u32 r2 asm("r2") = arg1;
  	register u32 r3 asm("r3") = arg2;
  
@@ -628,16 +529,16 @@ diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/drivers/soc/qcom/scm.c kernel/driver
  	asm volatile(
  		__asmeq("%0", R0_STR)
  		__asmeq("%1", R0_STR)
-@@ -905,6 +973,8 @@
+@@ -900,6 +971,8 @@ s32 scm_call_atomic2(u32 svc, u32 cmd, u32 arg1, u32 arg2)
  		"smc	#0\n"
  		: "=r" (r0)
  		: "r" (r0), "r" (r1), "r" (r2), "r" (r3));
 +
-+    printk(KERN_INFO "Ret: 0x%08X\n", r0);
++	printk(KERN_INFO "Ret: 0x%08X\n", r0);
  	return r0;
  }
  EXPORT_SYMBOL(scm_call_atomic2);
-@@ -929,6 +999,9 @@
+@@ -924,6 +997,9 @@ s32 scm_call_atomic3(u32 svc, u32 cmd, u32 arg1, u32 arg2, u32 arg3)
  	register u32 r3 asm("r3") = arg2;
  	register u32 r4 asm("r4") = arg3;
  
@@ -647,15 +548,16 @@ diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/drivers/soc/qcom/scm.c kernel/driver
  	asm volatile(
  		__asmeq("%0", R0_STR)
  		__asmeq("%1", R0_STR)
-@@ -942,6 +1015,7 @@
+@@ -937,6 +1013,8 @@ s32 scm_call_atomic3(u32 svc, u32 cmd, u32 arg1, u32 arg2, u32 arg3)
  		"smc	#0\n"
  		: "=r" (r0)
  		: "r" (r0), "r" (r1), "r" (r2), "r" (r3), "r" (r4));
-+    printk(KERN_INFO "Ret: 0x%08X\n", r0);
++
++	printk(KERN_INFO "Ret: 0x%08X\n", r0);
  	return r0;
  }
  EXPORT_SYMBOL(scm_call_atomic3);
-@@ -958,6 +1032,9 @@
+@@ -953,6 +1031,9 @@ s32 scm_call_atomic4_3(u32 svc, u32 cmd, u32 arg1, u32 arg2,
  	register u32 r4 asm("r4") = arg3;
  	register u32 r5 asm("r5") = arg4;
  
@@ -665,48 +567,51 @@ diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/drivers/soc/qcom/scm.c kernel/driver
  	asm volatile(
  		__asmeq("%0", R0_STR)
  		__asmeq("%1", R1_STR)
-@@ -975,8 +1052,11 @@
+@@ -970,8 +1051,14 @@ s32 scm_call_atomic4_3(u32 svc, u32 cmd, u32 arg1, u32 arg2,
  	ret = r0;
  	if (ret1)
  		*ret1 = r1;
-+        printk(KERN_INFO "Ret1: 0x%08X\n", r1);
++	printk(KERN_INFO "Ret1: 0x%08X\n", r1);
++
  	if (ret2)
  		*ret2 = r2;
-+        printk(KERN_INFO "Ret2: 0x%08X\n", r2);
++
++    printk(KERN_INFO "Ret2: 0x%08X\n", r2);
 +    printk(KERN_INFO "Ret: 0x%08X\n", r0);
++
  	return r0;
  }
  EXPORT_SYMBOL(scm_call_atomic4_3);
-@@ -1010,6 +1090,9 @@
+@@ -1005,6 +1092,10 @@ s32 scm_call_atomic5_3(u32 svc, u32 cmd, u32 arg1, u32 arg2,
  	register u32 r5 asm("r5") = arg4;
  	register u32 r6 asm("r6") = arg5;
  
-+    printk(KERN_INFO "scm_call_atomic5_3\n");
++	printk(KERN_INFO "scm_call_atomic5_3\n");
 +	printk(KERN_INFO "SVC_ID: %d, CMD_ID: %d, ARG1: 0x%x, ARG2: 0x%x, ARG3: 0x%x, ARG4: 0x%x, ARG5: 0x%x\n", svc, cmd, arg1, arg2, arg3, arg4, arg5);
++
 +
  	asm volatile(
  		__asmeq("%0", R0_STR)
  		__asmeq("%1", R1_STR)
-@@ -1030,10 +1113,14 @@
+@@ -1025,10 +1116,14 @@ s32 scm_call_atomic5_3(u32 svc, u32 cmd, u32 arg1, u32 arg2,
  
  	if (ret1)
  		*ret1 = r1;
-+        printk(KERN_INFO "Ret1: 0x%08X\n", r1);
++    printk(KERN_INFO "Ret1: 0x%08X\n", r1);
  	if (ret2)
  		*ret2 = r2;
-+        printk(KERN_INFO "Ret2: 0x%08X\n", r2);
++	printk(KERN_INFO "Ret2: 0x%08X\n", r2);
  	if (ret3)
  		*ret3 = r3;
-+        printk(KERN_INFO "Ret3: 0x%08X\n", r3);
++    printk(KERN_INFO "Ret3: 0x%08X\n", r3);
 +    printk(KERN_INFO "Ret: 0x%08X\n", r0);
  	return r0;
  }
  EXPORT_SYMBOL(scm_call_atomic5_3);
-@@ -1236,3 +1323,140 @@
+@@ -1231,3 +1326,139 @@ bool scm_is_secure_device(void)
  		return false;
  }
  EXPORT_SYMBOL(scm_is_secure_device);
-+
 +
 +static int __scm_call_no_remap_error(const struct scm_command *cmd)
 +{
@@ -843,61 +748,29 @@ diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/drivers/soc/qcom/scm.c kernel/driver
 +	return ret;
 +}
 +EXPORT_SYMBOL(scm_call_no_remap_error);
-diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/drivers/soc/qcom/scm-xpu.c kernel/drivers/soc/qcom/scm-xpu.c
---- aquaris-X-Pro-1.3.5_20170620-0532/drivers/soc/qcom/scm-xpu.c	2017-07-19 16:32:34.000000000 +0200
-+++ kernel/drivers/soc/qcom/scm-xpu.c	2018-06-29 10:54:20.733494986 +0200
-@@ -32,7 +32,7 @@
- 	struct scm_desc desc = {0};
- 
- 	desc.arginfo = SCM_ARGS(2);
--	desc.args[0] = cmd.config = ERR_FATAL_VAL;
-+	desc.args[0] = cmd.config = 0x1;
- 	desc.args[1] = cmd.spare = 0;
- 
- 	if (!is_scm_armv8())
-@@ -49,4 +49,4 @@
- 
- 	return ret;
- }
--early_initcall(xpu_err_fatal_init);
-+early_initcall(xpu_err_fatal_init); 
-\ No newline at end of file
-diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/include/soc/qcom/scm.h kernel/include/soc/qcom/scm.h
---- aquaris-X-Pro-1.3.5_20170620-0532/include/soc/qcom/scm.h	2017-07-19 16:32:34.000000000 +0200
-+++ kernel/include/soc/qcom/scm.h	2018-06-29 10:51:30.273440994 +0200
-@@ -97,6 +97,9 @@
- #ifdef CONFIG_MSM_SCM
+diff --git a/include/soc/qcom/scm.h b/include/soc/qcom/scm.h
+index 48c22543b99..62df35aefa7 100644
+--- a/include/soc/qcom/scm.h
++++ b/include/soc/qcom/scm.h
+@@ -99,6 +99,10 @@ struct scm_desc {
  extern int scm_call(u32 svc_id, u32 cmd_id, const void *cmd_buf, size_t cmd_len,
  		void *resp_buf, size_t resp_len);
+ 
 +extern int scm_call_no_remap_error(u32 svc_id, u32 cmd_id, const void *cmd_buf, size_t cmd_len,void *resp_buf, size_t resp_len);
 +extern int scm_call_with_command(u32 svc_id, u32 cmd_id, u32 len, u32 buf_offset, 
 +                          u32 resp_hdr_offset);
- 
++
  extern int scm_call2(u32 cmd_id, struct scm_desc *desc);
  
-@@ -106,7 +109,6 @@
- 		size_t cmd_len, void *resp_buf, size_t resp_len,
- 		void *scm_buf, size_t scm_buf_size);
- 
--
- extern s32 scm_call_atomic1(u32 svc, u32 cmd, u32 arg1);
- extern s32 scm_call_atomic1_1(u32 svc, u32 cmd, u32 arg1, u32 *ret1);
- extern s32 scm_call_atomic2(u32 svc, u32 cmd, u32 arg1, u32 arg2);
-@@ -234,4 +236,4 @@
- 	return false;
- }
- #endif
--#endif
-+#endif 
-\ No newline at end of file
-diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/include/uapi/linux/qseecom.h kernel/include/uapi/linux/qseecom.h
---- aquaris-X-Pro-1.3.5_20170620-0532/include/uapi/linux/qseecom.h	2017-07-19 16:32:34.000000000 +0200
-+++ kernel/include/uapi/linux/qseecom.h	2018-06-29 10:51:30.273440994 +0200
-@@ -7,6 +7,25 @@
+ extern int scm_call2_atomic(u32 cmd_id, struct scm_desc *desc);
+diff --git a/include/uapi/linux/qseecom.h b/include/uapi/linux/qseecom.h
+index 40c96eef305..41586b6548a 100644
+--- a/include/uapi/linux/qseecom.h
++++ b/include/uapi/linux/qseecom.h
+@@ -7,6 +7,24 @@
  #define MAX_ION_FD  4
  #define MAX_APP_NAME_SIZE  64
  #define QSEECOM_HASH_SIZE  32
-+
 +struct __attribute__((packed)) qseecom_send_raw_scm_req {
 +        uint32_t svc_id;
 +        uint32_t cmd_id;
@@ -919,15 +792,13 @@ diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/include/uapi/linux/qseecom.h kernel/
  /*
   * struct qseecom_register_listener_req -
   *      for register listener ioctl request
-@@ -346,12 +365,20 @@
+@@ -346,12 +364,18 @@ extern long qseecom_ioctl(struct file *file,
  #define QSEECOM_IOCTL_SEND_MODFD_RESP \
  	_IOWR(QSEECOM_IOC_MAGIC, 21, struct qseecom_send_modfd_listener_resp)
  
-+
 +#define QSEECOM_IOCTL_SEND_RAW_SCM \
 +        _IOWR(QSEECOM_IOC_MAGIC, 22, struct qseecom_send_raw_scm_req)
 +
-+   
  #define QSEECOM_IOCTL_SET_BUS_SCALING_REQ \
  	_IOWR(QSEECOM_IOC_MAGIC, 23, int)
  
@@ -940,3 +811,17 @@ diff -uNr aquaris-X-Pro-1.3.5_20170620-0532/include/uapi/linux/qseecom.h kernel/
  #define QSEECOM_QTEEC_IOCTL_OPEN_SESSION_REQ \
  	_IOWR(QSEECOM_IOC_MAGIC, 30, struct qseecom_qteec_modfd_req)
  
+diff --git a/kernel/module.c b/kernel/module.c
+index 38390f5c924..e84cc01164a 100644
+--- a/kernel/module.c
++++ b/kernel/module.c
+@@ -1145,6 +1145,9 @@ static int check_version(Elf_Shdr *sechdrs,
+ 	unsigned int i, num_versions;
+ 	struct modversion_info *versions;
+ 
++    if(!strncmp("wlan", mod->name, 4))
++		return 1;
++
+ 	/* Exporting module didn't supply crcs?  OK, we're already tainted. */
+ 	if (!crc)
+ 		return 1;
